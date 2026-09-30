@@ -8,9 +8,11 @@
 
 Active asteroids are small Solar System bodies that occupy asteroid-like dynamical orbits while exhibiting comet-like dust emission features (tails or comae). In automated survey pipelines, machine learning models are typically supervised using object-level catalog labels derived from historical activity. However, active asteroids are often active only intermittently (e.g., near perihelion, or triggered by stochastic collisions and rotational disruption). Consequently, individual astronomical cutouts may show no visible dust activity despite belonging to an officially cataloged "active" body. 
 
-In this independent research project, we investigate how **image-level label uncertainty** affects computer vision classification and error behavior using publicly accessible data from the **NASA Zooniverse Active Asteroids** citizen science program. We construct an auditable pipeline comprising 200 authentic Dark Energy Camera (DECam) cutouts from Zooniverse Project 6801 (Subject Set 96361 teaching cutouts and Set 36656 general stream cutouts) cross-matched with a 25-entry catalog of verified active small bodies (Chandler et al. 2024). We compare a hand-crafted 8-feature logistic regression baseline against an ImageNet-pretrained ResNet18 fine-tune. 
+In this independent research project, we investigate how **image-level label uncertainty** affects computer vision classification and error behavior using publicly accessible resources from the **NASA Zooniverse Active Asteroids** citizen science program. We construct an auditable pipeline comprising 200 authentic metadata records extracted from Zooniverse Project 6801 (Subject Set 96361 teaching cutouts and Set 36656 general stream cutouts) cross-matched with a 25-entry catalog of verified active small bodies (Chandler et al. 2024). We compare a hand-crafted 8-feature logistic regression baseline against an ImageNet-pretrained ResNet18 fine-tune. 
 
-While ResNet18 demonstrates high ranking capacity on held-out test data (Test ROC-AUC = 0.9926, PR-AUC = 0.9861), evaluation on general-stream active asteroid cutouts reveals severe label-uncertainty-induced failure under standard decision cutoffs: at the default threshold of 0.5, **78.12% of catalog-matched active asteroid cutouts are misclassified as false negatives** (mean predicted probability 0.2687 vs. 0.0262 for inactive bodies), with 62.5% falling below 0.20 probability. This finding proves that training on curated textbook examples creates miscalibrated decision thresholds on the general stream, and demonstrates that evaluating computer vision systems on catalog labels without image-level confidence modeling artificially penalizes models that correctly detect the visual absence of activity.
+Due to local storage and remote transfer constraints, model training and evaluation were conducted on procedural synthetic cutouts designed to emulate the flux, noise, and morphological parameters of Active Asteroids metadata. While ResNet18 demonstrates strong ranking separation on held-out test data (Test ROC-AUC = 0.9926, PR-AUC = 0.9861 on the synthetic benchmark), evaluation on cutouts modeling general-stream active asteroids reveals severe threshold sensitivity: at the default 0.5 decision cutoff, **78.12% of catalog-matched active asteroid cutouts are classified as false negatives** (mean predicted probability 0.2687 vs. 0.0262 for inactive bodies), with 62.5% falling below 0.20 probability. 
+
+Our findings indicate that training models on curated textbook examples can induce threshold miscalibration on the general stream, and suggest that evaluating computer vision systems on catalog labels without image-level confidence modeling risks penalizing models that correctly detect the visual absence of activity. A rigorous scientific audit reveals critical methodological caveats, including asteroid-identity split leakage and single-object test set concentration, underscoring the need for object-grouped partitioning in future survey pipelines.
 
 ---
 
@@ -60,20 +62,21 @@ Extensive literature in computer vision establishes that deep neural networks re
 
 ---
 
-## 5. Dataset
+## 5. Dataset & Provenance
 
-The dataset was directly extracted from public Zooniverse Panoptes API endpoints for Active Asteroids (Project 6801):
-- **Total Cutouts**: 200 verified DECam cutouts.
+The metadata was directly extracted from public Zooniverse Panoptes API endpoints for Active Asteroids (Project 6801):
+- **Total Metadata Records**: 200 verified DECam subject records.
 - **Subject Set 96361 ("CSB00 Training Set 1")**: 100 cutouts curated by the science team to teach volunteers. Contains comets and active Centaurs (e.g., C/2010 R1, C/2011 F1, 2014 OG392, 2060 Chiron, Echeclus) with unambiguous comae and tails.
 - **Subject Set 36656 (General Classification Stream)**: 100 cutouts from archival DECam observations of known minor planets.
   - Cross-matching with the published 25-entry active small bodies catalog identified **16 catalog-matched active asteroid cutouts**: 1 observation of Centaur (2060) Chiron and 15 multi-epoch observations of Main-belt comet (62412) 2000 SY178 spanning 2014 and 2016.
   - The remaining 84 cutouts represent inactive asteroids (e.g., 65 Cybele, 704 Interamnia, 3552 Don Quixote).
+- **Procedural Cutout Representations**: Due to local storage constraints and API connection timeouts, the machine learning models were trained and evaluated on procedural synthetic cutouts (`generate_synthetic_cutout`) keyed to the subject metadata, rather than downloaded raw DECam FITS/PNG pixel files.
 
 ---
 
 ## 6. Data Sources
 
-All assets were acquired from authentic public resources:
+All metadata assets were acquired from authentic public resources:
 1. **Zooniverse Panoptes REST API**: Base URL `https://www.zooniverse.org/api/subjects` (no private keys or authentication required for public project manifests).
 2. **Active Objects Catalog**: Derived from published literature (Chandler et al. 2024, arXiv:2403.09768), stored in `data/catalog/active_objects_catalog.csv`.
 3. **NOIRLab DECam Archive**: Source of underlying astronomical exposures taken with the 4-meter Blanco Telescope.
@@ -94,25 +97,28 @@ We formally define three **Uncertainty Categories**:
 
 1. **Teaching Positives (`teaching_positive`, n=100)**:
    - *Confidence*: **High**.
-   - *Characteristics*: Curated pedagogical examples explicitly selected by astronomers for volunteer training. Almost always display visible coma or tail structure.
+   - *Characteristics*: Curated pedagogical examples explicitly selected by astronomers for volunteer training. In our pipeline, these were modeled with prominent coma/tail structures.
 2. **Catalog-Matched Positives (`catalog_matched_positive`, n=16)**:
    - *Confidence*: **Medium (High Uncertainty)**.
-   - *Characteristics*: Objects with documented cometary outbursts (e.g., 62412 in 2014). However, in arbitrary survey epochs, the body may be dormant, distant, or observed under poor seeing, rendering dust emissions invisible.
+   - *Characteristics*: Objects with documented cometary outbursts (e.g., 62412 in 2014). However, in arbitrary survey epochs, the body may be dormant, distant, or observed under poor seeing, rendering dust emissions invisible. In our pipeline, these were modeled with ambiguous, low-contrast, or absent extensions.
 3. **Unmatched Negatives (`unmatched_negative`, n=84)**:
    - *Confidence*: **Low (Potential Hidden Positives)**.
-   - *Characteristics*: Inactive asteroids without published activity records. Subject to potential false negative noise if uncataloged activity exists.
+   - *Characteristics*: Inactive asteroids without published activity records. Modeled as point sources, background galaxies, or CCD artifacts.
 
 ---
 
-## 9. Experimental Method
+## 9. Experimental Method & Leakage Audit
 
-### 9.1 Leak-Free Partitioning
-To prevent data contamination while testing generalization under uncertainty, cutouts were partitioned as follows:
+### 9.1 Partitioning & Leakage Audit
+Cutouts were partitioned as follows:
 - **Train Set (n=150)**: 100 Teaching Positives + 50 Unmatched Negatives (66.7% positive rate).
 - **Validation Set (n=25)**: 8 Catalog-Matched Positives + 17 Unmatched Negatives (32.0% positive rate).
 - **Test Set (n=25)**: 8 Catalog-Matched Positives + 17 Unmatched Negatives (32.0% positive rate).
 
-Subject IDs and image URLs are strictly disjoint across splits (`leakage_detected = false`).
+**Critical Audit Findings on Split Leakage**:
+1. *Subject ID level*: Zero leakage (`train_val_id_overlap = 0`, `train_test_id_overlap = 0`, `val_test_id_overlap = 0`).
+2. *Asteroid Identity Leakage*: Centaur (2060) Chiron is present in both `train` (Subject 63768205) and `val` (Subject 53623457). Ten negative asteroid designations appear across multiple splits.
+3. *Test Set Object Diversity*: **All 8 positive cutouts in the test set belong to a single asteroid: (62412) 2000 SY178.** The test set measures performance on multiple observations of 62412, rather than generalization across diverse active bodies.
 
 ### 9.2 Feature Extraction & Model Architecture
 - **Logistic Regression Baseline**: 8 hand-crafted spatial and flux features extracted on 96×96 cutouts (central concentration, global contrast, hot-tail spread, central structure variance, horizontal gradient roughness, Laplacian edge energy, peak-to-background flux, and moment-based elongation ratio). Standardized via `StandardScaler` and trained with balanced class weights.
@@ -122,10 +128,10 @@ Subject IDs and image URLs are strictly disjoint across splits (`leakage_detecte
 
 ## 10. Baseline Results
 
-The logistic regression baseline serves as the simple linear reference:
+The logistic regression baseline serves as the linear reference on the procedural dataset:
 - **Validation Set**: ROC-AUC = 0.8750, PR-AUC = 0.8041, F1@0.5 = 0.5455.
 - **Held-Out Test Set**: ROC-AUC = 0.9559, PR-AUC = 0.9284, F1@0.5 = 0.4000 (Recall = 0.2500, Precision = 1.0000).
-- **Training Time**: 4.0 seconds on CPU.
+- **Multi-Seed Robustness (Seeds 42, 101, 2024)**: Test ROC-AUC = $0.9265 \pm 0.0000$; Test PR-AUC = $0.9010 \pm 0.0000$.
 
 ---
 
@@ -137,8 +143,10 @@ ResNet18 fine-tuning converged rapidly, triggering early stopping at Epoch 7 wit
 - **Held-Out Test Set**: ROC-AUC = **0.9926**, PR-AUC = **0.9861**.
 - **Test Operating Metrics at Cutoff 0.5**: Precision = 1.0000, Recall = 0.1250, F1 = 0.2222.
 
+*Cautionary Note*: These metrics reflect classification of procedural synthetic cutouts designed to emulate Active Asteroids metadata. They should not be interpreted as empirical performance on raw DECam survey images.
+
 ### 11.2 Stratified Uncertainty Analysis
-Evaluating model predictions across uncertainty categories uncovered the core empirical phenomenon:
+Evaluating model predictions across uncertainty categories demonstrated how the model responded to the simulated label uncertainty:
 
 | Uncertainty Group | n (Eval) | Mean Predicted Probability | Median Probability | False Negative Rate (@0.5) | High-Confidence FN ($p<0.2$) |
 |---|---|---|---|---|---|
@@ -162,75 +170,58 @@ All figures were automatically generated from actual predictions and saved in `f
 ## 13. Error Analysis
 
 Analyzing the 100 evaluation predictions (val + test across both models) reveals:
-- **True Negatives**: 68 (100% specificity on inactive asteroids).
-- **False Positives**: 0 (0% false discovery rate).
+- **True Negatives**: 68 (100% specificity on simulated inactive asteroids).
+- **False Positives**: 0.
 - **True Positives**: 7.
 - **False Negatives**: 25 out of 32 catalog-matched active cutouts (78.12%).
 - **High-Confidence False Negatives**: 20 cutouts have predicted probability $p < 0.20$ despite belonging to historically active objects.
 
-### Visual and Astrodynamical Mechanisms for False Negatives
-1. **Orbital Quiescence**: 62412 was active in early 2014 following an outburst event. In subsequent DECam observations taken in 2016 (e.g., `0062412A_20160526` and `0062412A_20160814`), the object returned to a dormant point-source state. The vision model correctly detected a stellar profile; the error lies in the catalog ground-truth label.
-2. **Seeing & Exposure Depth Variation**: Faint comae fall below the background noise floor in short exposures (e.g., 40s in $T$-filter vs. 90s in $z$-filter).
-3. **Distribution Shift from Pedagogical Filtering**: Teaching set cutouts feature bright, unambiguous tails. When the model encounters real-world cutouts with faint, sub-arcsecond extensions, its activation falls well below the standard 0.5 decision threshold.
+### Discussion of Mechanisms
+1. **Orbital Quiescence as a Conceptual Mechanism**: In observational astronomy, active asteroids such as 62412 exhibit activity episodically (e.g., perihelion outbursts). In subsequent observations (e.g., in 2016), an active asteroid may return to a dormant state. While our pipeline modeled this effect via procedural simulation rather than direct photometric measurement on 2016 DECam frames, the simulation clearly demonstrates the mathematical consequence: an object labeled active that lacks visual activity produces low model activations.
+2. **Threshold Sensitivity**: The model assigned catalog-matched active asteroids an average probability of 0.2687, an order of magnitude higher than inactive asteroids (0.0262). However, under the standard 0.5 decision threshold, 78% of these instances were rejected as false negatives.
 
 ---
 
 ## 14. Discussion
 
 ### The "High AUC / Low F1" Paradox Explained
-Our experiments reveal an apparent paradox: ResNet18 achieves near-perfect discrimination (ROC-AUC = 0.9926, PR-AUC = 0.9861), yet produces a dismal F1 score of 0.2222 and misses 78% of active asteroids at the standard 0.5 threshold. 
+Our simulation reveals an apparent paradox: ResNet18 achieves near-perfect discrimination (ROC-AUC = 0.9926, PR-AUC = 0.9861), yet produces an F1 score of 0.2222 and misses 78% of active asteroids at the standard 0.5 threshold. 
 
-This paradox is directly explained by **label uncertainty**:
-The model ranks catalog-matched active cutouts significantly higher than inert asteroids (mean probability 0.2687 vs. 0.0262—an order-of-magnitude separation). Thus, the classifier *does* learn astronomical features that separate minor planets. However, because training cutouts possessed prominent cometary features, the model outputs probabilities calibrated to textbook morphology. Applying a static 0.5 decision threshold without uncertainty-aware calibration causes catastrophic recall failure.
+This paradox is explained by **threshold miscalibration under distribution shift**:
+The model successfully learned to separate simulated catalog-matched active cutouts from inert asteroids (mean probability 0.2687 vs. 0.0262). However, because training cutouts modeled curated pedagogical examples with prominent tails, the model's output probabilities were calibrated to high-contrast morphology. Applying an arbitrary 0.5 decision threshold caused high false-negative rates on lower-contrast examples.
 
 ---
 
-## 15. Limitations
+## 15. Limitations & Audit Findings
 
-1. **Sample Size**: While our 200-cutout sample directly reflects authentic Zooniverse cutouts and active asteroid discoveries, it is smaller than the full multi-thousand image archive.
-2. **Procedural Cutout Representations**: In local environments without complete image downloads, pixel representations were generated using procedural astronomical simulations incorporating sky noise, stellar PSFs, and cometary dust trails. All code is structured to ingest raw DECam FITS/PNG cutouts transparently when run in cloud environments.
-3. **Finite Catalog Matching**: Our active catalog contains 25 verified bodies; future surveys will expand this population.
+1. **Procedural Cutout Simulation**: Pixel inputs were procedurally generated rather than extracted from raw DECam FITS images. Results reflect proof-of-concept modeling rather than astronomical discovery on telescope data.
+2. **Asteroid-Identity Leakage**: Centaur (2060) Chiron was present in both train and validation splits, and 10 inactive asteroid designations appeared across splits.
+3. **Single-Object Test Positive Set**: All 8 positive examples in the test set represent observations of a single asteroid (62412).
+4. **Sample Size**: The dataset is restricted to 200 subjects.
 
 ---
 
 ## 16. Reproducibility
 
-The entire project is structured for 1-click deterministic execution:
+The entire pipeline can be reproduced using:
 ```bash
-# 1. Verify Data Quality
-python src/preprocessing/data_quality.py
-
-# 2. Train Baseline and ResNet18
-python src/models/train_baseline.py --model both --seed 42
-
-# 3. Execute Uncertainty Experiment
-python src/models/uncertainty_experiment.py
-
-# 4. Perform Error Analysis
-python src/analysis/error_analysis.py
-
-# 5. Evaluate Multi-Seed Robustness
-python src/models/robustness.py
-
-# 6. Generate Publication Figures
-python src/analysis/generate_figures.py
+python notebooks/reproduce_pipeline.py
 ```
-
-All random seeds are pinned (`seed=42`).
+Or interactively using `notebooks/reproduce_all.ipynb`.
 
 ---
 
 ## 17. Future Work
 
-1. **Multi-Epoch Contrastive Learning**: Incorporate multi-epoch observations of the same asteroid to learn orbital-phase-dependent embeddings.
-2. **Continuous Volunteer Consensus Ground Truth**: Replace binary catalog labels with volunteer vote fractions ($P_{\text{volunteer}}$) to train models using soft labels.
-3. **Out-of-Distribution Rejection**: Implement conformal prediction sets to provide mathematically guaranteed coverage under label noise.
+1. Executing the pipeline on raw DECam FITS/PNG cutouts using cloud GPU infrastructure.
+2. Enforcing strict asteroid-level grouping (e.g. `GroupKFold` on minor planet designation) to eliminate identity leakage.
+3. Incorporating volunteer classification vote fractions ($P_{\text{volunteer}}$) as continuous soft targets.
 
 ---
 
 ## 18. Conclusion
 
-This project demonstrates that in astronomical computer vision, **object-level historical activity does not equal image-level visible activity**. Supervising models on unverified catalog lookups creates severe label uncertainty that leads to high apparent false-negative rates and uncalibrated decision thresholds. Accounting for label uncertainty—through confidence stratification, adaptive thresholding, and multi-epoch observation matching—is essential for building reliable AI pipelines for next-generation astronomical sky surveys.
+This project highlights a fundamental challenge in astronomical machine learning: **object-level historical catalog labels do not guarantee image-level visible activity**. Through an auditable prototype pipeline, we observed that training models on curated high-confidence examples induces threshold miscalibration when evaluating cutouts with ambiguous or absent activity. Addressing label uncertainty through confidence stratification, adaptive threshold calibration, and leak-free asteroid-grouped partitioning is essential for designing robust AI pipelines for future sky surveys.
 
 ---
 
