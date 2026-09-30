@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-09-30T20:07:53.524920",
+  "dataset_size": 200,
+  "label_distribution": {
+    "1": 116,
+    "0": 84
+  },
+  "uncertainty_distribution": {
+    "teaching_positive": 100,
+    "unmatched_negative": 84,
+    "catalog_matched_positive": 16
+  },
+  "experiment_C": {
+    "total_predictions": 100,
+    "models": [
+      "logistic_regression",
+      "resnet18"
+    ],
+    "by_uncertainty_category": {
+      "catalog_matched_positive": {
+        "n_samples": 32,
+        "n_positive": 32,
+        "n_negative": 0,
+        "mean_pred_prob": 0.2687,
+        "std_pred_prob": 0.2984,
+        "median_pred_prob": 0.1129,
+        "false_negative_rate": 0.7812,
+        "mean_prob_for_positives": 0.2687,
+        "high_confidence_false_negatives": 20,
+        "false_positive_rate": null,
+        "mean_prob_for_negatives": null,
+        "high_confidence_false_positives": 0,
+        "roc_auc": null
+      },
+      "unmatched_negative": {
+        "n_samples": 68,
+        "n_positive": 0,
+        "n_negative": 68,
+        "mean_pred_prob": 0.0262,
+        "std_pred_prob": 0.0489,
+        "median_pred_prob": 0.0024,
+        "false_negative_rate": null,
+        "mean_prob_for_positives": null,
+        "high_confidence_false_negatives": 0,
+        "false_positive_rate": 0.0,
+        "mean_prob_for_negatives": 0.0262,
+        "high_confidence_false_positives": 0,
+        "roc_auc": null
+      }
+    },
+    "hypothesis_tests": {
+      "H1": {
+        "hypothesis": "Model confidence (pred_prob) is lower for catalog-matched positives than for teaching set positives, because the training signal is noisier for catalog-matched examples.",
+        "result": "insufficient_data",
+        "note": "n_teaching=0, n_catalog=32. Cannot test \u2014 need both categories in predictions."
+      },
+      "H2": {
+        "hypothesis": "Catalog-matched positives have higher false-negative rate than teaching positives because the object-level label does not guarantee visible activity in every image.",
+        "catalog_matched_fn_rate": 0.7812,
+        "result": "insufficient_data"
+      },
+      "H3": {
+        "hypothesis": "High-confidence wrong predictions (false positives with prob > 0.8, false negatives with prob < 0.2) cluster in the unmatched_negative category, indicating that the negative pool contains hard examples (galaxy false positives, possible undiscovered active objects).",
+        "n_high_conf_fp": 0,
+        "n_high_conf_fn": 20,
+        "high_conf_fn_by_category": {
+          "catalog_matched_positive": 20
+        }
+      }
+    }
+  },
+  "experiment_B": {
+    "experiment": "B",
+    "status": "executed",
+    "n_catalog_matched_removed": 16,
+    "val_metrics": {
+      "split": "val",
+      "roc_auc": 0.7868,
+      "pr_auc": 0.7485,
+      "precision_at_0_5": 1.0,
+      "recall_at_0_5": 0.125,
+      "f1_at_0_5": 0.2222,
+      "accuracy": 0.72,
+      "recall_at_top10pct": 0.375,
+      "n_samples": 25,
+      "n_positive": 8,
+      "n_negative": 17,
+      "tp": 1,
+      "fp": 0,
+      "tn": 17,
+      "fn": 7
+    },
+    "test_metrics": {
+      "split": "test",
+      "roc_auc": 0.9412,
+      "pr_auc": 0.9375,
+      "precision_at_0_5": 1.0,
+      "recall_at_0_5": 0.375,
+      "f1_at_0_5": 0.5455,
+      "accuracy": 0.8,
+      "recall_at_top10pct": 0.375,
+      "n_samples": 25,
+      "n_positive": 8,
+      "n_negative": 17,
+      "tp": 3,
+      "fp": 0,
+      "tn": 17,
+      "fn": 5
+    },
+    "comparison_note": "Compare to Experiment A (all labels) to assess the effect of removing uncertain catalog-matched positives from training."
+  }
+}

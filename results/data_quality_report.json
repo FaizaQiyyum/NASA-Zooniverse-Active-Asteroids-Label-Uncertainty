@@ -1,0 +1,160 @@
+{
+  "generated_at": "2026-09-30T20:00:58.664667",
+  "total_subjects": 200,
+  "columns": [
+    "subject_id",
+    "subject_set_id",
+    "designation",
+    "filename",
+    "kind",
+    "image_url",
+    "feedback_answer",
+    "object_level_label",
+    "label_source",
+    "label_confidence",
+    "uncertainty_category",
+    "mpc_number",
+    "split"
+  ],
+  "duplicates": {
+    "duplicate_subject_ids": 0,
+    "unique_subject_ids": 200,
+    "duplicate_image_urls": 0,
+    "designations_in_multiple_splits": 11,
+    "cross_split_designations": [
+      "62412 (2000 SY178)",
+      "Asteroid_18916",
+      "Asteroid_225416",
+      "Asteroid_24684",
+      "Asteroid_25916",
+      "Asteroid_300163",
+      "Asteroid_371837",
+      "Asteroid_450807",
+      "Asteroid_457175",
+      "Asteroid_53525"
+    ]
+  },
+  "missing_values": {
+    "subject_id": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "subject_set_id": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "designation": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "filename": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "kind": {
+      "n_missing": 100,
+      "n_empty_string": 0,
+      "pct_missing": 50.0
+    },
+    "image_url": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "feedback_answer": {
+      "n_missing": 100,
+      "n_empty_string": 0,
+      "pct_missing": 50.0
+    },
+    "object_level_label": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "label_source": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "label_confidence": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "uncertainty_category": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "mpc_number": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    },
+    "split": {
+      "n_missing": 0,
+      "n_empty_string": 0,
+      "pct_missing": 0.0
+    }
+  },
+  "labels": {
+    "label_values": [
+      0,
+      1
+    ],
+    "label_distribution": {
+      "1": 116,
+      "0": 84
+    },
+    "n_positive": 116,
+    "n_negative": 84,
+    "class_imbalance_ratio": 0.72,
+    "label_source_counts": {
+      "train_set_teaching": 100,
+      "no_match": 84,
+      "catalog_match": 16
+    },
+    "uncertainty_category_counts": {
+      "teaching_positive": 100,
+      "unmatched_negative": 84,
+      "catalog_matched_positive": 16
+    },
+    "label_confidence_counts": {
+      "high": 100,
+      "low": 84,
+      "medium": 16
+    },
+    "teaching_set_positives": 100,
+    "catalog_matched_positives": 16,
+    "unmatched_negatives": 84,
+    "label_uncertainty_note": "Teaching set positives (high confidence): labeled by project team as showing activity. Catalog-matched positives (medium confidence): object historically active, but this specific image may not visibly show activity \u2014 this is the label uncertainty problem. Unmatched negatives (low confidence): assumed inactive, may contain undiscovered active objects."
+  },
+  "splits": {
+    "split_sizes": {
+      "train": 150,
+      "test": 25,
+      "val": 25
+    },
+    "total": 200,
+    "train_positive": 100,
+    "train_negative": 50,
+    "train_positive_rate": 0.667,
+    "test_positive": 8,
+    "test_negative": 17,
+    "test_positive_rate": 0.32,
+    "val_positive": 8,
+    "val_negative": 17,
+    "val_positive_rate": 0.32,
+    "train_val_id_overlap": 0,
+    "train_test_id_overlap": 0,
+    "val_test_id_overlap": 0,
+    "leakage_detected": false
+  },
+  "flags": [
+    "NOTE: Catalog-matched positives present \u2014 these carry label uncertainty (object-level label does not guarantee image-level visible activity)"
+  ]
+}

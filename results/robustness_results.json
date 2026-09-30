@@ -1,0 +1,49 @@
+{
+  "n_seeds": 3,
+  "seeds": [
+    42,
+    101,
+    2024
+  ],
+  "runs": [
+    {
+      "seed": 42,
+      "val_roc_auc": 0.9632,
+      "val_pr_auc": 0.9294,
+      "test_roc_auc": 0.9265,
+      "test_pr_auc": 0.901,
+      "test_f1": 0.5455,
+      "test_recall": 0.375,
+      "test_precision": 1.0
+    },
+    {
+      "seed": 101,
+      "val_roc_auc": 0.9632,
+      "val_pr_auc": 0.9294,
+      "test_roc_auc": 0.9265,
+      "test_pr_auc": 0.901,
+      "test_f1": 0.5455,
+      "test_recall": 0.375,
+      "test_precision": 1.0
+    },
+    {
+      "seed": 2024,
+      "val_roc_auc": 0.9632,
+      "val_pr_auc": 0.9294,
+      "test_roc_auc": 0.9265,
+      "test_pr_auc": 0.901,
+      "test_f1": 0.5455,
+      "test_recall": 0.375,
+      "test_precision": 1.0
+    }
+  ],
+  "summary": {
+    "test_roc_auc_mean": 0.9265,
+    "test_roc_auc_std": 0.0,
+    "test_pr_auc_mean": 0.901,
+    "test_pr_auc_std": 0.0,
+    "test_f1_mean": 0.5455,
+    "test_f1_std": 0.0
+  },
+  "statistical_caution": "Evaluated across 3 random seeds. With test set size n=25, metrics exhibit finite-sample variance. Small sample size limits strong statistical significance claims."
+}

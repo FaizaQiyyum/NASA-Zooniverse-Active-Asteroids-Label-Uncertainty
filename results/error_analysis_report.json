@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-09-30T20:12:40.817593",
+  "total_predictions": 100,
+  "error_distribution": {
+    "TN": 68,
+    "HC-FN": 20,
+    "TP": 7,
+    "FN": 5
+  },
+  "TP_rate": 0.07,
+  "TN_rate": 0.68,
+  "FP_rate": 0.0,
+  "FN_rate": 0.05,
+  "HC-FP_rate": 0.0,
+  "HC-FN_rate": 0.2,
+  "error_by_uncertainty": {
+    "catalog_matched_positive": {
+      "n_samples": 32,
+      "error_counts": {
+        "HC-FN": 20,
+        "TP": 7,
+        "FN": 5
+      },
+      "mean_pred_prob": 0.2687
+    },
+    "unmatched_negative": {
+      "n_samples": 68,
+      "error_counts": {
+        "TN": 68
+      },
+      "mean_pred_prob": 0.0262
+    }
+  },
+  "high_confidence_errors": {
+    "total": 20,
+    "by_type": {
+      "HC-FN": 20
+    },
+    "by_uncertainty": {
+      "catalog_matched_positive": 20
+    }
+  },
+  "key_findings": [
+    "Model has more false negatives (25) than false positives (0), consistent with high precision / low recall operating point.",
+    "Catalog-matched positives: FN rate = 78.12% (25/32). These represent the label uncertainty problem: object-level labels applied to images where activity may not be visible."
+  ]
+}
